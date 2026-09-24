@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Голосование 7Б</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="auth-screen" class="screen active">
+<div class="card">
+<div class="icon">📦</div>
+<h1>Голосование<br>за идеи <span class="blue">7Б</span></h1>
+<p class="sub">Одна неделя. Четыре идеи.<br>Один выбор класса.</p>
+<div class="tabs">
+<button id="tab-login" class="active">Вход</button>
+<button id="tab-register">Регистрация</button>
+</div>
+<div id="login-form" class="form active">
+<label>Имя и фамилия</label>
+<input type="text" id="login-name" placeholder="Например: Иванов Иван">
+<div id="login-name-error" class="err"></div>
+<label>Пароль</label>
+<input type="password" id="login-password" placeholder="••••">
+<div id="login-password-error" class="err"></div>
+<button type="button" id="login-btn" class="btn">Войти на участок</button>
+<div id="login-error" class="err"></div>
+</div>
+<div id="register-form" class="form">
+<label>Имя и фамилия</label>
+<input type="text" id="register-name" placeholder="Например: Иванов Иван">
+<div id="register-name-error" class="err"></div>
+<label>Пароль</label>
+<input type="password" id="register-password" placeholder="••••">
+<div id="register-password-error" class="err"></div>
+<label>Повторите пароль</label>
+<input type="password" id="register-password2" placeholder="••••">
+<div id="register-password2-error" class="err"></div>
+<button type="button" id="register-btn" class="btn">Зарегистрироваться</button>
+<div id="register-error" class="err"></div>
+</div>
+<p class="counter">Зарегистрировано избирателей: <span id="user-count">0</span></p>
+<div class="footer">Избирательная комиссия 7Б · сезон 2026 ·<br>голосование до 29 сентября 18:00<br>сборка v1-ideas-2026-09-24</div>
+</div>
+</div>
+
+<div id="home-screen" class="screen">
+<div class="header">
+<div class="logo">📦 <span class="blue">7Б</span>·Выборы</div>
+<div class="rt"><span class="dot"></span><span class="rt-1">Real-time:</span> <span class="rt-2">connected</span></div>
+</div>
+<div class="content">
+<div class="pills">
+<span class="pill green">● Голосование идёт</span>
+<span class="pill blue">📦 Всего голосов: <span id="total-votes-home">0</span></span>
+</div>
+<h1 class="main-title" style="text-align:left">Голосование за идеи <span class="blue">7Б</span></h1>
+<p class="desc">Голосование идёт до 29 сентября 18:00 — тогда система сама подсчитает голоса и объявит победителя.</p>
+<div class="timer">
+<div class="tb"><div class="tv" id="t-d">0</div><div class="tl">Дней</div></div>
+<div class="tb"><div class="tv" id="t-h">00</div><div class="tl">Часов</div></div>
+<div class="tb"><div class="tv" id="t-m">00</div><div class="tl">Минут</div></div>
+<div class="tb"><div class="tv" id="t-s">00</div><div class="tl">Секунд</div></div>
+</div>
+<p class="desc" style="text-align:center;font-size:12px">до закрытия · 29 сентября 2026 г. в 18:00</p>
+<button type="button" class="btn" onclick="goTo('stats-screen')">📊 Смотреть статистику</button>
+<div class="ideas" id="ideas-grid"></div>
+</div>
+</div>
+
+<div id="vote-screen" class="screen">
+<div class="header">
+<div class="logo">📦 <span class="blue">7Б</span>·Выборы</div>
+<div class="rt"><span class="dot"></span><span class="rt-1">Real-time:</span> <span class="rt-2">connected</span></div>
+</div>
+<div class="content">
+<div class="icon">🗳️</div>
+<h1>Голосование за идеи 7Б</h1>
+<div id="vote-form-box">
+<div class="warn"><p>⚠️ При нажатии на «Проголосовать» вы подтверждаете условия соглашения.</p></div>
+<p class="desc">Голосование тайное: 1 человек — 1 голос. Изменить голос после подтверждения <b>нельзя</b>. До 29 сентября 2026 г. 18:00.</p>
+<div class="vote-options" id="vote-options"></div>
+<label class="chk"><input type="checkbox" id="agree-checkbox"><span>Я согласен с правилами голосования</span></label>
+<button type="button" id="vote-submit" class="btn">Проголосовать</button>
+<button type="button" id="read-agreement" class="btn btn-outline">📜 Прочитать соглашение</button>
+</div>
+<div id="vote-already" class="already hide">
+<div class="icon">✅</div>
+<h2>Твой голос уже учтён</h2>
+<p class="sub">Ты можешь посмотреть результаты в Live режиме или вернуться на Главную.</p>
+<button type="button" class="btn" onclick="goTo('stats-screen')">Смотреть статистику</button>
+<button type="button" class="btn btn-outline" onclick="goTo('home-screen')">На Главную</button>
+</div>
+</div>
+</div>
+
+<div id="stats-screen" class="screen">
+<div class="header">
+<div class="logo">📦 <span class="blue">7Б</span>·Выборы</div>
+<div class="rt"><span class="dot"></span><span class="rt-1">Real-time:</span> <span class="rt-2">connected</span></div>
+</div>
+<div class="content">
+<h1 class="main-title" style="text-align:left">Результаты голосования</h1>
+<div class="stats-list" id="stats-list"></div>
+<div class="stcard"><h3>Лидер сейчас</h3><p id="leader-text">Пока нет голосов</p></div>
+<div class="stcard"><h3>Твой статус</h3><p id="my-status">Ещё не голосовал(а)</p></div>
+<div class="stcard"><h3>📡 Анонимная статистика по времени</h3><div id="timeline-list" style="font-size:13px;color:#8892b0">Пока пусто</div></div>
+</div>
+</div>
+
+<div id="profile-screen" class="screen">
+<div class="header">
+<div class="logo">📦 <span class="blue">7Б</span>·Выборы</div>
+<div class="rt"><span class="dot"></span><span class="rt-1">Real-time:</span> <span class="rt-2">connected</span></div>
+</div>
+<div class="content">
+<div class="pcard">
+<div class="avatar" id="avatar">--</div>
+<h2 id="profile-name">—</h2>
+<p class="sub" id="profile-info">Избиратель класса 7Б</p>
+<div class="pills" style="justify-content:center">
+<span class="pill green">● Голосование идёт</span>
+<span class="pill gray" id="vote-pill">Ещё не голосовал</span>
+</div>
+</div>
+<div class="stcard hide" id="my-choice-card"><h3>Твой выбор</h3><p id="my-choice" style="font-size:17px">—</p><p style="font-size:12px;color:#8892b0;font-weight:400">изменению не подлежит</p></div>
+<div class="stcard"><h3>ID избирателя</h3><p class="mono" id="profile-id">#--------</p><p style="font-size:12px;color:#8892b0;font-weight:400;margin-top:4px">по нему голос анонимен</p></div>
+<div class="stcard"><h3>Синхронизация</h3><p style="font-size:15px">● Real-time: connected</p></div>
+<button type="button" class="btn btn-outline" onclick="showAgreement()">📜 Соглашение</button>
+<button type="button" class="btn btn-outline" id="open-devs">👥 Разработчики</button>
+<div id="devs-text" class="stcard hide" style="margin-top:10px"><p style="font-size:14px;font-weight:400">Разработчик: Tdk</p></div>
+<button type="button" class="btn btn-outline red" id="open-restart">🔄 Рестарт выборов</button>
+<button type="button" class="btn btn-outline red" id="logout-btn">🚪 Выйти</button>
+</div>
+</div>
+
+<div id="thanks-screen" class="screen">
+<div class="content" style="padding-top:60px;text-align:center">
+<div class="icon" style="font-size:90px">✅</div>
+<h1>Спасибо за голос!</h1>
+<p class="desc">Твой голос учтён. Изменить его уже нельзя.<br>Посмотри статистику в Live режиме.</p>
+<button type="button" class="btn" onclick="goTo('stats-screen')">📊 Смотреть статистику</button>
+<button type="button" class="btn btn-outline" onclick="goTo('home-screen')">На Главную</button>
+</div>
+</div>
+
+<div id="restart-modal" class="modal">
+<div class="mov"></div>
+<div class="mcard">
+<h2>Рестарт выборов</h2>
+<p>Введите код разработчика чтобы начать голосование с нуля, если что-то пойдёт не по плану.</p>
+<input type="text" id="reset-code" placeholder="Код разработчика">
+<div id="reset-error" class="err"></div>
+<div class="mbtns">
+<button type="button" class="btn btn-outline" id="reset-cancel" style="margin-top:0">Отмена</button>
+<button type="button" class="btn btn-red" id="reset-confirm" style="margin-top:0">Рестарт</button>
+</div>
+</div>
+</div>
+
+<div id="agreement-modal" class="modal">
+<div class="mov"></div>
+<div class="mcard" style="border-color:rgba(100,150,255,.3)">
+<h2>📜 Соглашение</h2>
+<ol>
+<li>Один ученик — один голос.</li>
+<li>Голосовать можно только за одну идею.</li>
+<li>После подтверждения голос изменить нельзя.</li>
+<li>Голосование до 29 сентября 18:00.</li>
+<li>Боты и повторные аккаунты запрещены.</li>
+</ol>
+<div class="mbtns"><button type="button" class="btn btn-outline" id="agreement-close" style="margin-top:0">Закрыть</button></div>
+</div>
+</div>
+
+<nav class="nav" id="bottom-nav" style="display:none">
+<button type="button" data-screen="home-screen"><span class="ni">🏠</span>Главная</button>
+<button type="button" data-screen="vote-screen"><span class="ni">🗳️</span>Голос</button>
+<button type="button" data-screen="stats-screen"><span class="ni">📊</span>Статистика</button>
+<button type="button" data-screen="profile-screen"><span class="ni">👤</span>Профиль</button>
+</nav>
+
+<script src="script.js"></script>
+</body>
+  </html>
