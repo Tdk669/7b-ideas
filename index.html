@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Голосование за идеи 7Б</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  color: #e8ecf8;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  background: radial-gradient(circle at 20% 20%, rgba(79,110,247,0.15) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(139,92,246,0.15) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+.screen { display: none; min-height: 100vh; position: relative; z-index: 1; }
+.screen.active { display: block; }
+.hidden { display: none !important; }
+
+/* AUTH */
+#auth-screen { display: none; align-items: center; justify-content: center; padding: 20px; }
+#auth-screen.active { display: flex; }
+.auth-card {
+  background: rgba(30,40,80,0.5);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(100,150,255,0.15);
+  border-radius: 20px;
+  padding: 40px 32px;
+  max-width: 420px; width: 100%;
+  box-shadow: 0 8px 32px rgba(50,100,255,0.1);
+}
+.auth-icon { font-size: 72px; text-align: center; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(59,158,255,0.5)); }
+.auth-title { font-size: 30px; font-weight: 700; text-align: center; line-height: 1.3; margin-bottom: 12px; }
+.auth-subtitle { font-size: 14px; color: #8892b0; text-align: center; margin-bottom: 28px; line-height: 1.5; }
+.blue { color: #3b9eff; }
+.tab-switcher { display: flex; background: rgba(15,20,45,0.8); border: 1px solid rgba(100,150,255,0.1); border-radius: 16px; padding: 4px; margin-bottom: 28px; }
+.tab-btn { flex: 1; background: transparent; border: none; color: #8892b0; font-size: 15px; font-weight: 600; padding: 12px; border-radius: 12px; cursor: pointer; transition: all .3s; }
+.tab-btn.active { background: linear-gradient(90deg, #6366f1, #3b9eff); color: white; }
+.auth-form { display: none; }
+.auth-form.active { display: block; }
+.form-label { display: block; font-size: 13px; font-weight: 600; color: #8892b0; margin-bottom: 8px; margin-top: 16px; }
+.form-input { width: 100%; background: rgba(15,20,45,0.6); border: 1px solid rgba(100,150,255,0.15); border-radius: 14px; padding: 16px; color: white; font-size: 15px; transition: all .3s; }
+.form-input:focus { outline: none; border-color: rgba(100,150,255,0.4); background: rgba(15,20,45,0.8); }
+.form-input::placeholder { color: #5a6480; }
+.error-msg { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; border-radius: 12px; padding: 10px; font-size: 13px; margin-top: 8px; display: none; }
+.error-msg.show { display: block; }
+.btn-primary { width: 100%; background: linear-gradient(90deg, #4f6ef7, #3b9eff); border: none; color: white; font-size: 16px; font-weight: 700; padding: 18px; border-radius: 16px; cursor: pointer; margin-top: 24px; transition: all .3s; box-shadow: 0 4px 20px rgba(79,110,247,0.3); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.auth-counter { text-align: center; font-size: 12px; color: #8892b0; margin-top: 20px; }
+.auth-footer { text-align: center; font-size: 11px; color: #8892b0; margin-top: 24px; line-height: 1.6; }
+
+/* HEADER */
+.header { background: rgba(15,20,45,0.95); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(100,150,255,0.1); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+.header-left { font-size: 18px; font-weight: 700; }
+.header-right { display: flex; align-items: center; gap: 6px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); border-radius: 30px; padding: 6px 12px; font-size: 12px; }
+.status-dot { width: 8px; height: 8px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.status-text { color: #4ade80; }
+.status-connected { color: white; }
+
+/* CONTENT */
+.content { padding: 24px 20px 100px; max-width: 600px; margin: 0 auto; }
+.pills { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.pill { background: rgba(15,20,45,0.6); border: 1px solid rgba(100,150,255,0.15); border-radius: 30px; padding: 8px 16px; font-size: 13px; font-weight: 600; }
+.pill-green { color: #4ade80; border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.08); }
+.pill-blue { color: #3b9eff; }
+.main-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+.main-desc { color: #8892b0; font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+.timer { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+.timer-block { background: rgba(30,40,80,0.5); backdrop-filter: blur(15px); border: 1px solid rgba(100,150,255,0.15); border-radius: 16px; padding: 16px 8px; text-align: center; }
+.timer-value { font-size: 28px; font-weight: 700; color: #3b9eff; margin-bottom: 4px; }
+.timer-label { font-size: 10px; color: #8892b0; text-transform: uppercase; }
+.btn-secondary { width: 100%; background: linear-gradient(90deg, #4f6ef7, #3b9eff); border: none; color: white; font-size: 15px; font-weight: 700; padding: 18px; border-radius: 16px; cursor: pointer; margin-bottom: 12px; box-shadow: 0 4px 20px rgba(79,110,247,0.3); }
+.btn-outline { width: 100%; background: transparent; border: 1px solid rgba(100,150,255,0.3); color: white; font-size: 15px; font-weight: 600; padding: 16px; border-radius: 16px; cursor: pointer; transition: all .3s; }
+.btn-outline:active { background: rgba(30,40,80,0.5); }
+.btn-danger-outline { border-color: rgba(239,68,68,0.3); color: #ef4444; }
+.btn-danger { width: 100%; background: linear-gradient(90deg, #ef4444, #f97316); border: none; color: white; font-size: 15px; font-weight: 700; padding: 16px; border-radius: 16px; cursor: pointer; }
+
+.ideas-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 24px; }
+.idea-card { background: rgba(30,40,80,0.5); backdrop-filter: blur(15px); border: 1px solid rgba(100,150,255,0.15); border-radius: 20px; padding: 20px; transition: all .3s; }
+.idea-emoji { font-size: 56px; margin-bottom: 12px; }
+.idea-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; line-height: 1.3; }
+.idea-desc { font-size: 12px; color: #8892b0; line-height: 1.4; margin-bottom: 12px; }
+.idea-votes { font-size: 13px; color: #3b9eff; font-weight: 600; }
+
+/* VOTE */
+.vote-icon { font-size: 72px; text-align: center; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(59,158,255,0.5)); }
+.warning-card { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
+.warning-card p { color: #f59e0b; font-size: 14px; line-height: 1.5; }
+.vote-desc { color: #8892b0; font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+.vote-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.vote-option { background: rgba(30,40,80,0.5); backdrop-filter: blur(15px); border: 2px solid rgba(100,150,255,0.15); border-radius: 16px; padding: 16px; cursor: pointer; transition: all .3s; }
+.vote-option.selected { border-color: #3b9eff; background: rgba(59,158,255,0.1); }
+.vote-option-content { display: flex; align-items: center; gap: 16px; }
+.vote-emoji { font-size: 40px; flex-shrink: 0; }
+.vote-option-content h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.vote-option-content p { font-size: 12px; color: #8892b0; }
+.checkbox-label { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; cursor: pointer; font-size: 14px; }
+.checkbox-label input { width: 20px; height: 20px; cursor: pointer; accent-color: #3b9eff; }
+.vote-already { text-align: center; padding: 40px 20px; background: rgba(30,40,80,0.5); backdrop-filter: blur(15px); border: 1px solid rgba(100,150,255,0.15); border-radius: 20px; }
+.success-icon { font-size: 72px; margin-bottom: 20px; }
+.vote-already h2 { font-size: 22px; margin-bottom: 12px; }
+.vote-already p { color: #8892b0; margin-bottom: 24px; line-height: 1.5; }
+
+/* STATS */
+.stats-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+.stat-card { background: rgba(30,40,80,0.5); backdrop-filter: blur(15px); border: 1px solid rgba(100,150,255,0.15); border-radius: 20px; padding: 20px; }
+.stat-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.stat-medal { font-size: 32px; }
+.stat-emoji { font-size: 36px; }
+.stat-info h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
+.stat-votes { font-size: 13px; color: #8892b0; }
+.progress-bar { background: rgba(15,20,45,0.6); border-radius: 8px; height: 8px; overflow: hidden; margin-bottom: 12px; }
+.progress-fill { height: 100%; transition: width .5s; width: 0%; }
+#stat-1 .progress-fill { background: linear-gradient(90deg,#8b5cf6,#6366f1); }
+#stat-2 .progress-fill { background: linear-gradient(90deg,#4ade80,#22c55e); }
+#stat-3 .progress-fill { background: linear-gradient(90deg,#f59e0b,#f97316); }
+#stat-4 .progress-fill { background: linear-gradient(90deg,#8892b0,#64748b); }
+.stat-desc { font-size: 12px; color: #8892b0; line-height: 1.4; }
+.status-card { background: rgba(30,40,80,0.5); backdrop-filter: blur(15px); border: 1px solid rgba(100,150,255,0.15); border-radius: 20px; padding: 20px; margin-bottom: 16px; }
+.status-card h3 { font-size: 12px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.status-card p { font-size: 16px; font-weight: 600; }
+
+/* PROFILE */
+.profile-card { background: rgba(30,40,80,0.5); backdrop-filter: blur(15px); border: 1px solid rgba(100,150,255,0.15); border-radius: 20px; padding: 24px; text-align: center; margin-bottom: 20px; }
+.avatar { width: 80px; height: 80px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; margin: 0 auto 16px; }
+.profile-card h2 { font-size: 24px; margin-bottom: 8px; }
+.profile-info { color: #8892b0; font-size: 13px; margin-bottom: 16px; line-height: 1.5; }
+.profile-pills { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+.profile-detail-card { background: rgba(30,40,80,0.5); backdrop-filter: blur(15px); border: 1px solid rgba(100,150,255,0.15); border-radius: 20px; padding: 20px; margin-bottom: 16px; }
+.profile-detail-card h3 { font-size: 12px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.mono { font-family: 'Courier New', monospace; font-size: 20px; font-weight: 700; color: #3b9eff; }
+.profile-buttons { display: flex; flex-direction: column; gap: 12px; }
+.developers-text { background: rgba(15,20,45,0.6); border-radius: 12px; padding: 12px; font-size: 14px; text-align: center; margin-top: 12px; color: #8892b0; }
+
+/* BOTTOM NAV */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15,20,45,0.95); backdrop-filter: blur(15px); border-top: 1px solid rgba(100,150,255,0.1); display: flex; justify-content: space-around; padding: 10px 0 max(10px, env(safe-area-inset-bottom)); z-index: 100; }
+.nav-btn { background: transparent; border: none; color: #8892b0; font-size: 11px; font-weight: 600; padding: 8px 14px; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all .3s; }
+.nav-btn .nav-icon { font-size: 22px; }
+.nav-btn.active { background: linear-gradient(135deg, rgba(79,110,247,0.3), rgba(139,92,246,0.3)); color: white; }
+
+/* MODAL */
+.modal { display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+.modal.active { display: flex; }
+.modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
+.modal-card { position: relative; background: rgba(30,40,80,0.95); backdrop-filter: blur(15px); border: 1px solid rgba(255,100,100,0.3); border-radius: 20px; padding: 28px; max-width: 400px; width: 100%; z-index: 1; }
+.modal-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+.modal-card p { color: #8892b0; font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+.modal-buttons { display: flex; gap: 12px; margin-top: 16px; }
+.modal-buttons button { flex: 1; }
+
+/* THANKS */
+.thanks-card { text-align: center; padding: 60px 20px; }
+.thanks-card .success-icon { font-size: 90px; margin-bottom: 20px; }
+.thanks-card h1 { font-size: 28px; margin-bottom: 12px; }
+.thanks-card p { color: #8892b0; margin-bottom: 24px; line-height: 1.5; }
+
+@media (max-width: 480px) {
+  .timer-value { font-size: 22px; }
+  .timer-block { padding: 12px 6px; }
+  .auth-card { padding: 32px 24px; }
+  .nav-btn { padding: 6px 10px; font-size: 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ================= ЭКРАН ВХОДА / РЕГИСТРАЦИИ ================= -->
+<div id="auth-screen" class="screen active">
+  <div class="auth-card">
+    <div class="auth-icon">📦</div>
+    <h1 class="auth-title">Голосование<br>за идеи <span class="blue">7Б</span></h1>
+    <p class="auth-subtitle">Одна неделя. Четыре идеи.<br>Один выбор класса.</p>
+
+    <div class="tab-switcher">
+      <button type="button" class="tab-btn active" id="tab-login">Вход</button>
+      <button type="button" class="tab-btn" id="tab-register">Регистрация</button>
+    </div>
+
+    <!-- Вход -->
+    <div id="login-form" class="auth-form active">
+      <label class="form-label">Имя и фамилия</label>
+      <input type="text" id="login-name" class="form-input" placeholder="Например: Иванов Иван">
+      <div id="login-name-error" class="error-msg"></div>
+
+      <label class="form-label">Пароль</label>
+      <input type="password" id="login-password" class="form-input" placeholder="••••">
+      <div id="login-password-error" class="error-msg"></div>
+
+      <button type="button" id="login-btn" class="btn-primary">Войти на участок</button>
+      <div id="login-error" class="error-msg"></div>
+    </div>
+
+    <!-- Регистрация -->
+    <div id="register-form" class="auth-form">
+      <label class="form-label">Имя и фамилия</label>
+      <input type="text" id="register-name" class="form-input" placeholder="Например: Иванов Иван">
+      <div id="register-name-error" class="error-msg"></div>
+
+      <label class="form-label">Пароль</label>
+      <input type="password" id="register-password" class="form-input" placeholder="••••">
+      <div id="register-password-error" class="error-msg"></div>
+
+      <label class="form-label">Повторите пароль</label>
+      <input type="password" id="register-password2" class="form-input" placeholder="••••">
+      <div id="register-password2-error" class="error-msg"></div>
+
+      <button type="button" id="register-btn" class="btn-primary">Зарегистрироваться</button>
+      <div id="register-error" class="error-msg"></div>
+    </div>
+
+    <p class="auth-counter">Зарегистрировано избирателей: <span id="user-count">0</span></p>
+
+    <div class="auth-footer">
+      Избирательная комиссия 7Б · сезон 2026 ·<br>
+      голосование до 29 сентября 18:00<br>
+      сборка v1-ideas-2026-09-24
+    </div>
+  </div>
+</div>
+
+<!-- ================= ГЛАВНАЯ ================= -->
+<div id="home-screen" class="screen">
+  <header class="header">
+    <div class="header-left">📦 <span class="blue">7Б</span>·Выборы</div>
+    <div class="header-right">
+      <span class="status-dot"></span>
+      <span class="status-text">Real-time:</span>
+      <span class="status-connected">connected</span>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="pills">
+      <span class="pill pill-green">● Голосование идёт</span>
+      <span class="pill pill-blue">📦 Всего голосов: <span id="total-votes-home">0</span></span>
+    </div>
+
+    <h1 class="main-title">Голосование за идеи <span class="blue">7Б</span></h1>
+    <p class="main-desc">Голосование идёт до 29 сентября 18:00 — тогда система сама подсчитает голоса и объявит победителя.</p>
+
+    <div class="timer">
+      <div class="timer-block"><div class="timer-value" id="t-d">0</div><div class="timer-label">Дней</div></div>
+      <div class="timer-block"><div class="timer-value" id="t-h">00</div><div class="timer-label">Часов</div></div>
+      <div class="timer-block"><div class="timer-value" id="t-m">00</div><div class="timer-label">Минут</div></div>
+      <div class="timer-block"><div class="timer-value" id="t-s">00</div><div class="timer-label">Секунд</div></div>
+    </div>
+
+    <p class="main-desc" style="text-align:center; font-size:12px;">до закрытия голосования · 29 сентября 2026 г. в 18:00</p>
+
+    <button type="button" class="btn-secondary" onclick="goTo('stats-screen', event)">📊 Смотреть статистику</button>
+
+    <div class="ideas-grid" id="ideas-grid"></div>
+  </div>
+</div>
+
+<!-- ================= ГОЛОС ================= -->
+<div id="vote-screen" class="screen">
+  <header class="header">
+    <div class="header-left">📦 <span class="blue">7Б</span>·Выборы</div>
+    <div class="header-right">
+      <span class="status-dot"></span>
+      <span class="status-text">Real-time:</span>
+      <span class="status-connected">connected</span>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="vote-icon">🗳️</div>
+    <h1 class="main-title" style="text-align:center;">Голосование за идеи 7Б</h1>
+
+    <div id="vote-form-box">
+      <div class="warning-card">
+        <p>⚠️ При нажатии на «Проголосовать» вы подтверждаете условия соглашения.</p>
+      </div>
+      <p class="vote-desc">Голосование тайное: 1 человек — 1 голос. Изменить голос после подтверждения <b>нельзя</b>. Голосование идёт до 29 сентября 2026 г. в 18:00.</p>
+
+      <div class="vote-options" id="vote-options"></div>
+
+      <label class="checkbox-label">
+        <input type="checkbox" id="agree-checkbox">
+        <span>Я согласен с правилами голосования</span>
+      </label>
+
+      <button type="button" id="vote-submit" class="btn-primary">Проголосовать</button>
+      <button type="button" id="read-agreement" class="btn-outline" style="margin-top:12px;">📜 Прочитать соглашение</button>
+    </div>
+
+    <div id="vote-already" class="vote-already hidden">
+      <div class="success-icon">✅</div>
+      <h2>Твой голос уже учтён</h2>
+      <p>Ты можешь посмотреть результаты в Live режиме или вернуться на Главную.</p>
+      <button type="button" class="btn-secondary" onclick="goTo('stats-screen', event)">Смотреть статистику</button>
+      <button type="button" class="btn-outline" onclick="goTo('home-screen', event)">На Главную</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= СТАТИСТИКА ================= -->
+<div id="stats-screen" class="screen">
+  <header class="header">
+    <div class="header-left">📦 <span class="blue">7Б</span>·Выборы</div>
+    <div class="header-right">
+      <span class="status-dot"></span>
+      <span class="status-text">Real-time:</span>
+      <span class="status-connected">connected</span>
+    </div>
+  </header>
+
+  <div class="content">
+    <h1 class="main-title">Результаты голосования</h1>
+
+    <div class="stats-list" id="stats-list"></div>
+
+    <div class="status-card">
+      <h3>Лидер сейчас</h3>
+      <p id="leader-text">Пока нет голосов</p>
+    </div>
+
+    <div class="status-card">
+      <h3>Твой статус</h3>
+      <p id="my-status">Ещё не голосовал(а)</p>
+    </div>
+
+    <div class="status-card">
+      <h3>📡 Анонимная статистика по времени</h3>
+      <div id="timeline-list" style="font-size:13px; color:#8892b0;">Пока пусто</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ПРОФИЛЬ ================= -->
+<div id="profile-screen" class="screen">
+  <header class="header">
+    <div class="header-left">📦 <span class="blue">7Б</span>·Выборы</div>
+    <div class="header-right">
+    
